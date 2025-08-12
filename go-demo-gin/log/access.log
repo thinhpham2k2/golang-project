@@ -1491,3 +1491,49 @@
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTc1NzYxODAsImlkIjo1NCwiaXNzIjoiZ28tZGVtby1naW4iLCJzdWIiOiJzdHJpbmcifQ.h1bM4QjNqCPnyvtSPfx5WMmDQor3bCB6_OzGn9LzGRg"
 }
 --------------------------------------------------------------------------
+2025/08/12 14:45:08 
+. ID: 1754984708290
+. Client IP: ::1
+. Method: POST
+. Path: /api/v1/authen/login
+. Language: en;q=0.8
+. Status code: 400
+. Time: 54.088244ms
+. Request body (Content type: application/json):
+{
+  "password": "string",
+  "username": "string"
+}
+. Response body (Content type: application/json; charset=utf-8):
+{
+  "error": {
+    "message": "Invalid username or password"
+  }
+}
+--------------------------------------------------------------------------
+2025/08/12 14:50:40 
+. ID: 1754985040406
+. Client IP: ::1
+. Method: GET
+. Path: /api/v1/users?limit=10&page=1&sort=id%20desc
+. Language: en;q=0.8
+. Status code: 401
+. Time: 49.638µs
+. Request body (Content type: ):
+
+. Response body (Content type: application/json; charset=utf-8):
+
+--------------------------------------------------------------------------
+2025/08/12 14:50:59 
+. ID: 1754985059252
+. Client IP: ::1
+. Method: GET
+. Path: /api/v1/users?limit=10&page=1&sort=id%20desc
+. Language: en;q=0.8
+. Status code: 200
+. Time: 2.080824ms
+. Request body (Content type: ):
+
+. Response body (Content type: application/json; charset=utf-8):
+
+--------------------------------------------------------------------------

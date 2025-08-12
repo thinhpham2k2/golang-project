@@ -325,4 +325,9 @@ paths:
       summary: Update user
       tags:
       - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
