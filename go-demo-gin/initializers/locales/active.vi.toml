@@ -1,0 +1,83 @@
+[AUTHEN_REQUIRE]
+hash = "sha1-682810de81b76b6bd88cbed7574769f1dadc94fe"
+other = "Yêu cầu xác thực"
+
+[CREATE_FAIL]
+hash = "sha1-aac8c9cce6d39e604f4c8d779ac8f130c7ad5718"
+other = "Tạo mới thất bại"
+
+[DELETE_FAIL]
+hash = "sha1-64513b47d4606931a1e1d8a0632c93a80d3a264b"
+other = "Xóa thất bại"
+
+[DUPLICATE_USERNAME]
+hash = "sha1-07c01626faae7cf70d15b9aca97d987bb9cf480c"
+other = "Tên đăng nhập đã được sử dụng"
+
+[FAIL_CREATE_TOKEN]
+hash = "sha1-72f98435f8bf406851ec10a37d1eb92cf92503cc"
+other = "Tạo mã JWT thất bại"
+
+[INTERNAL_ERROR]
+hash = "sha1-fbb5b2a6d5252a4f6e3d33341268fab223c77c30"
+other = "Lỗi máy chủ"
+
+[INVALID_AUTHOR_HEADER]
+hash = "sha1-9ff0d3ce68fed1ada9ff392568b3ef85c3a70651"
+other = "Thiếu Authorization ở trong header"
+
+[INVALID_BIRTHDAY]
+hash = "sha1-e7287f5814e6cdd87098c27711311802356cb249"
+other = "Ngày sinh phải đúng định dạng YYYY-MM-DD và trong khoảng 5-100 tuổi"
+
+[INVALID_CLAIM]
+hash = "sha1-9ced3e97e9811eb1af793f737f57a7ad24512e7f"
+other = "Những dữ liệu trong token không hợp lệ"
+
+[INVALID_PASSWORD]
+hash = "sha1-a00801c8cca7d499ce765cc89f7ba985d876a9a5"
+other = "Mật khẩu từ 8-36 ký tự, chỉ gồm chữ thường, số, dấu chấm hoặc gạch dưới"
+
+[INVALID_ROLE]
+hash = "sha1-9b0dabab8be46a618794213ac7540b278e326338"
+other = "Vai trò phải là 1 trong các vai trò: admin, staff, customer"
+
+[INVALID_USERNAME]
+hash = "sha1-af43a9a102146e68373146aeee4b26eb2ab27cee"
+other = "Tên đăng nhập phải từ 3-24 ký tự, chỉ gồm chữ thường, số, dấu chấm hoặc gạch dưới"
+
+[INVALID_USERNAME_PASSWORD]
+hash = "sha1-4f4b9008c43268d692f6adcbb01c43244c6cb849"
+other = "Tài khoản hoặc mật khẩu không chính xác"
+
+[INVALID_VALUE]
+hash = "sha1-7e5ba8172e8e0f040beb647ab1be74ae0618bb56"
+other = "Giá trị không hợp lệ"
+
+[NOT_FOUND]
+hash = "sha1-68299e34ba0cd2085b31e15790b1d127580636ef"
+other = "Không tìm thấy mục"
+
+[PASSWORD_ENCRYPTION_FAIL]
+hash = "sha1-0c7dd13c6cac3551cbbbbbae6e4a1d8248117ea1"
+other = "Mã hóa mật khẩu thất bại"
+
+[PASSWORD_REQUIRE]
+hash = "sha1-6c56a9249cba324d029f725f1f7c0e47184e2dcf"
+other = "Mật khẩu không được để trống"
+
+[PERMISSION_REQUIRE]
+hash = "sha1-9cc8959222938460229a5109f2dbff9796201ab3"
+other = "Bạn không có quyền truy cập vào tài nguyên này"
+
+[ROLE_REQUIRE]
+hash = "sha1-71b13fd9227e9b6c433cd8e3f8c889908218f0e0"
+other = "Vai trò không được để trống"
+
+[UPDATE_FAIL]
+hash = "sha1-4de04cd91a3d954b02c7397e263feddd8519c483"
+other = "Cập nhật thất bại"
+
+[USERNAME_REQUIRE]
+hash = "sha1-6bad90b7a7cfc80e07dabd53d90ba7ef7bb922d2"
+other = "Tên đăng nhập không được để trống"

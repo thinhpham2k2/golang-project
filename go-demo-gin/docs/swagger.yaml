@@ -1,0 +1,328 @@
+definitions:
+  authen.LoginForm:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  controllers.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  error.Error:
+    properties:
+      error:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  error.HTTPError:
+    properties:
+      message:
+        $ref: '#/definitions/error.Error'
+      statusCode:
+        type: integer
+    type: object
+  pkg.Pagination:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      result:
+        items:
+          type: object
+        type: array
+      sort:
+        type: string
+      total_pages:
+        type: integer
+      total_rows:
+        type: integer
+    type: object
+  user.UserCreate:
+    properties:
+      birthday:
+        default: "2006-01-02"
+        type: string
+      full_name:
+        type: string
+      password:
+        default: "12345678"
+        type: string
+      role:
+        default: customer
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - role
+    - username
+    type: object
+  user.UserDetail:
+    properties:
+      birthday:
+        type: string
+      created_at:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  user.UserList:
+    properties:
+      birthday:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  user.UserUpdate:
+    properties:
+      birthday:
+        default: "2006-01-02"
+        type: string
+      full_name:
+        type: string
+      password:
+        default: "12345678"
+        type: string
+      role:
+        default: customer
+        type: string
+    required:
+    - role
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/authen/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to system
+      parameters:
+      - description: Login form
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/authen.LoginForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - "\U0001F510Authentication"
+  /api/v1/users:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all users
+      parameters:
+      - description: Search query
+        in: query
+        name: search
+        type: string
+      - default: "10"
+        description: Number of results per page
+        in: query
+        name: limit
+        type: string
+      - default: "1"
+        description: Current page in the paginated results
+        in: query
+        name: page
+        type: string
+      - default: id desc
+        description: Sorting criteria for the results
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/pkg.Pagination'
+              - properties:
+                  result:
+                    items:
+                      $ref: '#/definitions/user.UserList'
+                    type: array
+                type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.UserDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create user
+      tags:
+      - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+  /api/v1/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+    get:
+      consumes:
+      - application/json
+      description: Get user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserDetail'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get user detail
+      tags:
+      - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+    put:
+      consumes:
+      - application/json
+      description: Update existing user by ID
+      parameters:
+      - description: user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated user data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
+swagger: "2.0"
