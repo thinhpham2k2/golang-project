@@ -17,7 +17,7 @@ Gin là một framework web được viết bằng Go. Nó có API tương tự 
 
 ### Từ khóa liên quan tới những module đã được áp dụng:
 
-1. [Lớp khởi chạy (main.go) 📌](#1-lớp-khởi-chạy-maingo-📌)
+1. [Lớp khởi chạy (main.go) 📌](#1-lớp-khởi-chạy-maingo-)
 2. [Thực thể (Entity) 👤](#2-thực-thể-entity-👤)
 3. [Cơ sở dữ liệu (Database) 🛢️](#3-cơ-sở-dữ-liệu-database-🛢️)
 4. [ORM 🔄](#4-orm-🔄)
