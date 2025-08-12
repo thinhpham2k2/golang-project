@@ -19,23 +19,23 @@ Gin là một framework web được viết bằng Go. Nó có API tương tự 
 
 1. [Lớp khởi chạy (main.go) 📌](#1-lớp-khởi-chạy-maingo-)
 2. [Thực thể (Entity) 👤](#2-thực-thể-entity-)
-3. [Cơ sở dữ liệu (Database) 🛢️](#3-cơ-sở-dữ-liệu-database-)
+3. [Cơ sở dữ liệu (Database) 🛢](#3-cơ-sở-dữ-liệu-database-)
 4. [ORM 🔄](#4-orm-)
 5. [Bộ định tuyến (Router) 📡](#5-bộ-định-tuyến-router-)
 6. [Phân trang (Pagination) 🔢](#6-phân-trang-pagination-)
 7. [Ánh xạ dữ liệu (Mapping) 🔁](#7-ánh-xạ-dữ-liệu-mapping-)
-8. [Xác thực & phân quyền 🔐](#8-xác-thực-&-phân-quyền-)
+8. [Xác thực & phân quyền 🔐](#8-xác-thực--phân-quyền-)
 9. [Nhật kí (Logging) 📝](#9-nhật-kí-logging-)
-10. [Xử lí lỗi toàn cục (Error handler) ⚠️](#10-xử-lí-lỗi-toàn-cục-error-handler-)
+10. [Xử lí lỗi toàn cục (Error handler) ⚠](#10-xử-lí-lỗi-toàn-cục-error-handler-)
 11. [Gỡ lỗi (Debug) 🐞](#11-gỡ-lỗi-debug-)
 12. [Validation ✅](#12-validation-)
 13. [Swagger UI 🍀](#13-swagger-ui-)
 14. [gRPC 🔀](#14-grpc-)
 15. [Testing 🧪](#15-testing-)
 16. [Cache 💾](#16-cache-)
-17. [Vault 🛡️](#17-vault-)
+17. [Vault 🛡](#17-vault-)
 18. [Internationalization (I18n) 🌎](#18-internationalization-i18n-)
-19. [Cloud service ☁️](#19-cloud-service-)
+19. [Cloud service ☁](#19-cloud-service-)
 20. [Deploy & CICD 🚀](#20-deploy--cicd-)
 
 ---
@@ -121,7 +121,7 @@ func main() {
 
 ---
 
-## 3. Cơ sở dữ liệu (Database) 🛢️
+## 3. Cơ sở dữ liệu (Database) 🛢
 
 <!-- Mô tả hoặc ví dụ về Database -->
 
@@ -163,7 +163,7 @@ func main() {
 
 ---
 
-## 10. Xử lí lỗi toàn cục (Error handler) ⚠️
+## 10. Xử lí lỗi toàn cục (Error handler) ⚠
 
 <!-- Mô tả hoặc ví dụ về Error handler -->
 
@@ -205,7 +205,7 @@ func main() {
 
 ---
 
-## 17. Vault 🛡️
+## 17. Vault 🛡
 
 <!-- Mô tả hoặc ví dụ về Vault -->
 
@@ -217,7 +217,7 @@ func main() {
 
 ---
 
-## 19. Cloud service ☁️
+## 19. Cloud service ☁
 
 <!-- Mô tả hoặc ví dụ về Cloud service -->
 
