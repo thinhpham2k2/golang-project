@@ -80,7 +80,7 @@ func AccessLogger() gin.HandlerFunc {
 		// Format body nếu có thể (JSON pretty)
 		formattedReq := tryFormatJSON(requestBody)
 		var formattedResp string
-		if (method == "GET" || method == "") && hasListQuery(c) {
+		if (method == "GET" || method == "") && (hasListQuery(c) || isListRoute(c)) {
 			formattedResp = ""
 		} else {
 			formattedResp = tryFormatJSON(respBody.Bytes())
@@ -140,4 +140,16 @@ func hasListQuery(c *gin.Context) bool {
 
 	// Nếu có ít nhất một trong các query sau: limit, page, sort, search => coi là danh sách
 	return query.Has("limit") || query.Has("page") || query.Has("sort") || query.Has("search")
+}
+
+func isListRoute(c *gin.Context) bool {
+	p := c.FullPath() // ví dụ: "/api/v1/users" hoặc "/api/v1/users/:id"
+	if p == "" {
+		// không match route nào (404) hoặc middleware rất sớm
+		return false
+	}
+	// Coi là "list" nếu segment cuối KHÔNG phải tham số (":xxx")
+	parts := strings.Split(strings.Trim(p, "/"), "/")
+	last := parts[len(parts)-1]
+	return !strings.HasPrefix(last, ":")
 }
