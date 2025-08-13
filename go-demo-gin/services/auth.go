@@ -22,21 +22,21 @@ type AuthConfig struct {
 	AccessTTL time.Duration
 }
 
-type AuthenService struct {
+type AuthService struct {
 	db       *gorm.DB
 	cfg      AuthConfig
 	userRepo repo.UserRepo
 }
 
-func NewAuthenService(db *gorm.DB, cfg AuthConfig) *AuthenService {
-	return &AuthenService{
+func NewAuthService(db *gorm.DB, cfg AuthConfig) *AuthService {
+	return &AuthService{
 		db:       db,
 		cfg:      cfg,
 		userRepo: repo.NewGormUserRepo(db),
 	}
 }
 
-func (s *AuthenService) Authenticate(c *gin.Context, in *authenRequest.LoginForm) (*string, int, string) {
+func (s *AuthService) Authticate(c *gin.Context, in *authenRequest.LoginForm) (*string, int, string) {
 	// Logging
 	utils.Log(c, logrus.InfoLevel, "Entering the login service")
 

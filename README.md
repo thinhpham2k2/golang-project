@@ -90,8 +90,8 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @externalDocs.description  OpenAPI
-// @externalDocs.url          https://swagger.io/resources/open-api/
+// @description Enter your Bearer token
+// @description Example: Bearer 1234567890abcdef
 func main() {
 	// 1. Env
 	initializers.LoadEnvVariables()
@@ -102,11 +102,12 @@ func main() {
 	// 2. Logger
 	initializers.InitLogger()
 
+	// 3. I18n
 	if err := initializers.LoadI18n(); err != nil {
 		logrus.WithField("source", "system").WithError(err).Fatal("Failed to load i18n")
 	}
 
-	// 3. Database
+	// 4. Database
 	db, err := initializers.ConnectToDB()
 	if err != nil {
 		logrus.WithField("source", "system").WithError(err).Fatal("Fail to connect to database")
@@ -450,19 +451,19 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	// Use ginSwagger middleware to serve the API docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Gắn Access log filter
+	// Gắn middleware access log filter
 	r.Use(middlewares.AccessLogger())
 
 	// Gắn middleware error handler
 	r.Use(middlewares.ErrorHandler())
 
 	// Gắn middleware i18n
-	r.Use(middlewares.I18nMiddleware())
+	r.Use(middlewares.I18n())
 
 	ADMIN := models.RoleAdmin
 	STAFF := models.RoleStaff
 	CUSTOMER := models.RoleCustomer
-	RequireRoles := middlewares.AuthenticationFilter(db)
+	RequireRoles := middlewares.Authentication(db)
 
 	// Dependency Injection (DI) - constructor injection
 	// Create a validator
@@ -480,8 +481,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		Issuer:    "go-demo-gin",
 		AccessTTL: time.Hour * 24 * 30,
 	}
-	authenSvc := services.NewAuthenService(db, cfg)
-	ac := controllers.NewAuthenController(authenSvc)
+	authenSvc := services.NewAuthService(db, cfg)
+	ac := controllers.NewAuthController(authenSvc)
 
 	api := r.Group("/api")
 	{
@@ -609,7 +610,7 @@ func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Paginatio
 <summary>✨ Xem ví dụ về mapping</summary>
 
 ```go
-// File: models/user_create.go
+// File: requests/user/create.go
 // Package models chứa các thực thể của ứng dụng, trong đó có UserCreate.
 // Thực thể UserCreate đại diện cho dữ liệu đầu vào khi tạo người dùng mới.
 // Nó bao gồm các trường như Username, Password, Name, Birthday và Role.
@@ -646,7 +647,7 @@ func (u *UserCreate) Birthday() *time.Time {
 	return &birthday
 }
 
-// File: models/user_update.go
+// File: requests/user/update.go
 // Package models chứa các thực thể của ứng dụng, trong đó có UserUpdate.
 // Thực thể UserUpdate đại diện cho dữ liệu đầu vào khi cập nhật thông tin người dùng.
 // Nó bao gồm các trường như Pass, Name, Role và Date.
@@ -708,7 +709,7 @@ type User struct {
 }
 
 // Mapper
-// File: services/user_service.go
+// File: services/user.go
 var user models.User
 copier.Copy(&user, &in)
 ```
@@ -733,9 +734,9 @@ copier.Copy(&user, &in)
 <summary>✨ Xem ví dụ về xác thực & phân quyền</summary>
 
 ```go
-// File: middlewares/authenticationFilter.go
-// Package middlewares chứa các middleware cho ứng dụng, trong đó có AuthenticationFilter.
-// AuthenticationFilter là một middleware để xác thực và phân quyền người dùng.
+// File: middlewares/authentication.go
+// Package middlewares chứa các middleware cho ứng dụng, trong đó có Authentication.
+// Authentication là một middleware để xác thực và phân quyền người dùng.
 // Nó kiểm tra header Authorization để xác thực token JWT và phân quyền người dùng dựa trên vai trò (Role).
 // Middleware này sẽ lấy thông tin người dùng từ cơ sở dữ liệu dựa trên token JWT và kiểm tra xem người dùng có quyền truy cập vào route hiện tại hay không.
 // Nếu người dùng không được xác thực hoặc không có quyền truy cập, middleware sẽ trả về lỗi 401 Unauthorized hoặc 403 Forbidden.
@@ -760,7 +761,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthenticationFilter(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFunc {
+func Authentication(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFunc {
 	return func(allowedRoles ...models.Role) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			// Lấy localizer cho i18n
@@ -824,14 +825,14 @@ func AuthenticationFilter(db *gorm.DB) func(allowedRoles ...models.Role) gin.Han
 	}
 }
 
-// File: routes/routes.go
+// File: routes/router.go
 // Package routes chứa các hàm để thiết lập các route cho ứng dụng.
 // Nó sử dụng Gin framework để định nghĩa các route và ánh xạ chúng tới các controller.
 // Mỗi route được bảo vệ bởi các middleware để xác thực và phân quyền người dùng.
 ADMIN := models.RoleAdmin
 STAFF := models.RoleStaff
 CUSTOMER := models.RoleCustomer
-RequireRoles := middlewares.AuthenticationFilter(db)
+RequireRoles := middlewares.Authentication(db)
 api := r.Group("/api")
 {
 	v1 := api.Group("/v1")
@@ -876,7 +877,7 @@ api := r.Group("/api")
 <summary>✨ Xem ví dụ về Access log</summary>
 
 ```go
-// File: middlewares/accessLog.go
+// File: middlewares/access_log.go
 // Package middlewares chứa các middleware cho ứng dụng, trong đó có AccessLogger.
 // AccessLogger là một middleware để ghi lại nhật kí truy cập (access log) cho các yêu cầu HTTP.
 // Nó ghi lại các thông tin như ID, IP client, phương thức HTTP,
@@ -1188,7 +1189,7 @@ func Log(c *gin.Context, level log.Level, message string) {
 <summary>✨ Xem ví dụ về xử lí lỗi toàn cục</summary>
 
 ```go
-// File: middlewares/errorHandler.go
+// File: middlewares/error_handler.go
 // Package middlewares chứa các middleware cho ứng dụng, trong đó có ErrorHandler.
 // ErrorHandler là một middleware để xử lý lỗi toàn cục trong ứng dụng.
 // Nó sẽ kiểm tra các lỗi trong context sau khi xử lý yêu cầu và trả về phản hồi JSON với mã trạng thái HTTP tương ứng.
@@ -1269,7 +1270,7 @@ Hoặc tham khảo tại đây [delve](https://github.com/go-delve/delve)
 <summary>✨ Xem ví dụ về validation</summary>
 
 ```go
-// File: requests/user/userCreate.go
+// File: requests/user/create.go
 // Package requests chứa các yêu cầu đầu vào cho ứng dụng, trong đó có UserCreate.
 // Thực thể UserCreate đại diện cho dữ liệu đầu vào khi tạo người dùng mới.
 // Có một phương thức Validate để kiểm tra tính hợp lệ của dữ liệu đầu vào.
@@ -1444,7 +1445,7 @@ docs.SwaggerInfo.Description = "This is a sample server Petstore server."
 docs.SwaggerInfo.Version = "1.0"
 docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
-// File: controllers/userController.go
+// File: controllers/user.go
 
 // UsersCreate creates a new user
 //
@@ -1598,9 +1599,9 @@ func LoadI18n() error {
 	return nil
 }
 
-// File: middlewares/i18nMiddleware.go
-// Package middlewares chứa các middleware cho ứng dụng, trong đó có I18nMiddleware.
-// I18nMiddleware là một middleware để xử lý đa ngôn ngữ (i18n) trong ứng dụng.
+// File: middlewares/i18n.go
+// Package middlewares chứa các middleware cho ứng dụng, trong đó có I18n.
+// I18n là một middleware để xử lý đa ngôn ngữ (i18n) trong ứng dụng.
 // Nó sẽ lấy ngôn ngữ từ query string hoặc header Accept-Language và tạo một localizer từ bundle i18n đã được khởi tạo.
 // Localizer này sẽ được gắn vào context của Gin để có thể sử dụng trong các controller hoặc middleware khác.
 package middlewares

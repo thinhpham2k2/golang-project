@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthenticationFilter(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFunc {
+func Authentication(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFunc {
 	return func(allowedRoles ...models.Role) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			// Lấy localizer cho i18n

@@ -20,19 +20,19 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	// Use ginSwagger middleware to serve the API docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Gắn Access log filter
+	// Gắn middleware access log filter
 	r.Use(middlewares.AccessLogger())
 
 	// Gắn middleware error handler
 	r.Use(middlewares.ErrorHandler())
 
 	// Gắn middleware i18n
-	r.Use(middlewares.I18nMiddleware())
+	r.Use(middlewares.I18n())
 
 	ADMIN := models.RoleAdmin
 	STAFF := models.RoleStaff
 	CUSTOMER := models.RoleCustomer
-	RequireRoles := middlewares.AuthenticationFilter(db)
+	RequireRoles := middlewares.Authentication(db)
 
 	// Dependency Injection (DI) - constructor injection
 	// Create a validator
@@ -50,8 +50,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		Issuer:    "go-demo-gin",
 		AccessTTL: time.Hour * 24 * 30,
 	}
-	authenSvc := services.NewAuthenService(db, cfg)
-	ac := controllers.NewAuthenController(authenSvc)
+	authenSvc := services.NewAuthService(db, cfg)
+	ac := controllers.NewAuthController(authenSvc)
 
 	api := r.Group("/api")
 	{

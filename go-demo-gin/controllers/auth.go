@@ -18,19 +18,19 @@ type TokenResponse struct {
 	Token *string `json:"token"`
 }
 
-type AuthenController struct {
-	svc *services.AuthenService
+type AuthController struct {
+	svc *services.AuthService
 }
 
-func NewAuthenController(svc *services.AuthenService) *AuthenController {
-	return &AuthenController{svc: svc}
+func NewAuthController(svc *services.AuthService) *AuthController {
+	return &AuthController{svc: svc}
 }
 
 // Login login to system
 //
 // @Summary      Login
 // @Description  Login to system
-// @Tags         🔐Authentication
+// @Tags         🔐Authtication
 // @Accept       json
 // @Produce      json
 // @Param        request  body      authenRequest.LoginForm  true  "Login form"
@@ -38,7 +38,7 @@ func NewAuthenController(svc *services.AuthenService) *AuthenController {
 // @Failure      400      {object}  errorResponse.HTTPError
 // @Failure      500      {string}  httputil.HTTPError
 // @Router       /api/v1/authen/login [post]
-func (h *AuthenController) Login(c *gin.Context) {
+func (h *AuthController) Login(c *gin.Context) {
 	// Logging
 	utils.Log(c, logrus.InfoLevel, "Entering the login controller")
 
@@ -52,16 +52,16 @@ func (h *AuthenController) Login(c *gin.Context) {
 	}
 
 	// Check user infor & generate jwt token
-	token, status, err := h.svc.Authenticate(c, &authen)
+	token, status, err := h.svc.Authticate(c, &authen)
 	if token == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Authentication failed: "+err)
+		utils.Log(c, logrus.ErrorLevel, "Authtication failed: "+err)
 		return
 	}
 
 	// Logging
-	utils.Log(c, logrus.ErrorLevel, "Authentication successful for user: "+authen.Username)
+	utils.Log(c, logrus.ErrorLevel, "Authtication successful for user: "+authen.Username)
 	// Send it back
 	c.JSON(status, TokenResponse{
 		Token: token,

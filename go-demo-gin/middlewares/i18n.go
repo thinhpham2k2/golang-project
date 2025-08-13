@@ -7,7 +7,7 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-func I18nMiddleware() gin.HandlerFunc {
+func I18n() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lang := c.Query("lang")
 		accept := c.GetHeader("Accept-Language")

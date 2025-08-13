@@ -24,11 +24,12 @@ func main() {
 	// 2. Logger
 	initializers.InitLogger()
 
+	// 3. I18n
 	if err := initializers.LoadI18n(); err != nil {
 		logrus.WithField("source", "system").WithError(err).Fatal("Failed to load i18n")
 	}
 
-	// 3. Database
+	// 4. Database
 	db, err := initializers.ConnectToDB()
 	if err != nil {
 		logrus.WithField("source", "system").WithError(err).Fatal("Fail to connect to database")
