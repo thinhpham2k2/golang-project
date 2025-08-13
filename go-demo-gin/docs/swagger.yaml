@@ -327,6 +327,9 @@ paths:
       - "\U0001F468\U0001F3FB‍\U0001F4BCUsers"
 securityDefinitions:
   BearerAuth:
+    description: |-
+      Enter your Bearer token
+      Example: Bearer 1234567890abcdef
     in: header
     name: Authorization
     type: apiKey

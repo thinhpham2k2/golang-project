@@ -46,29 +46,27 @@ Gin là một framework web được viết bằng Go. Nó có API tương tự 
 
 Chạy ứng dụng bằng lệnh:
 
-```
+```sh
 go run main.go
 ```
 
 Hoặc biên dịch và chạy:
 
-```
+```sh
 go build main.go && ./main
 ```
 
 Để tự động theo dõi thay đổi và tái biên dịch, bạn có thể sử dụng CompileDaemon:
 
-```
+```sh
 CompileDaemon -command="./main"
 ```
 
-```md
 - Ví dụ về lớp khởi chạy với Gin framework
 - Mục đích của lớp khởi chạy là để khởi tạo các thành phần cần thiết của ứng dụng như môi trường, logger, kết nối cơ sở dữ liệu, và cấu hình các route. Đây là điểm bắt đầu của ứng dụng, nơi mà tất cả các thành phần khác được kết nối với nhau.
 - Lớp khởi chạy này sử dụng Gin framework để tạo một HTTP server, kết nối tới cơ sở dữ liệu, và thiết lập các route cho ứng dụng.
 - Nó cũng bao gồm việc khởi tạo các biến môi trường, logger, và i18n (internationalization) để hỗ trợ đa ngôn ngữ.
 - Cuối cùng, nó chạy server trên cổng mặc định 8080.
-```
 
 <details>
 <summary>✨ Xem ví dụ đầy đủ</summary>
@@ -141,12 +139,10 @@ func main() {
 
 <!-- Mô tả hoặc ví dụ về Entity -->
 
-```md
 - Ví dụ về thực thể User
 - Thực thể User đại diện cho người dùng trong hệ thống, bao gồm các trường như Username, Password, Name, Birthday và Role.
 - Nó sử dụng GORM để ánh xạ tới bảng người dùng trong cơ sở dữ liệu.
 - Các trường được định nghĩa với kiểu dữ liệu phù hợp và các thuộc tính cần thiết để lưu trữ thông tin người dùng.
-```
 
 <details>
 <summary>✨ Xem ví dụ entity</summary>
@@ -194,12 +190,10 @@ type User struct {
 
 #### Tạo kết nối cơ sở dữ liệu
 
-```md
 - Ví dụ về kết nối cơ sở dữ liệu
 - Kết nối cơ sở dữ liệu sử dụng GORM, một ORM phổ biến trong Go, để tương tác với cơ sở dữ liệu.
 - Hàm ConnectToDB thiết lập kết nối tới cơ sở dữ liệu sử dụng chuỗi kết nối được cung cấp trong biến môi trường DB_URL.
 - Nếu kết nối thành công, nó sẽ tự động thực hiện các thao tác cần thiết như tự động tạo bảng dựa trên các thực thể đã định nghĩa.
-```
 
 <details>
 <summary>✨ Xem ví dụ khởi tạo kết nối Database</summary>
@@ -259,16 +253,14 @@ func ConnectToDB() (*gorm.DB, error) {
 
 Chạy lệnh migrate để tự động tạo bảng:
 
-```
+```sh
 go run migrate/migrate.go
 ```
 
-```md
 - Ví dụ về tự động tạo bảng
 - Hàm AutoMigrate được sử dụng để tự động tạo bảng trong cơ sở dữ liệu dựa trên các thực thể đã định nghĩa.
 - Nó sẽ kiểm tra và tạo bảng cho thực thể User nếu nó chưa tồn tại.
 - Điều này giúp đảm bảo rằng cơ sở dữ liệu luôn được cập nhật với các thay đổi trong mô hình dữ liệu mà không cần phải viết các câu lệnh SQL thủ công.
-```
 
 <details>
 <summary>✨ Xem ví dụ tự động tạo bảng (Database first)</summary>
@@ -312,12 +304,10 @@ func main() {
 
 <!-- Mô tả hoặc ví dụ về ORM -->
 
-```md
 - Ví dụ về ORM với GORM
 - GORM là một ORM (Object Relational Mapping) phổ biến trong Go, giúp tương tác với cơ sở dữ liệu một cách dễ dàng và hiệu quả.
 - Nó cung cấp các phương thức để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên các thực thể đã định nghĩa.
 - GORM hỗ trợ nhiều loại cơ sở dữ liệu khác nhau và cho phép ánh xạ các trường trong thực thể tới các cột trong bảng cơ sở dữ liệu.
-```
 
 <details>
 <summary>✨ Xem ví dụ về ORM</summary>
@@ -415,14 +405,12 @@ func (r *GormUserRepo) FindByUsername(ctx context.Context, tx *gorm.DB, username
 
 <!-- Mô tả hoặc ví dụ về Router -->
 
-```md
 - Ví dụ về bộ định tuyến với Gin framework
 - Bộ định tuyến sử dụng Gin framework để định nghĩa các route và ánh xạ chúng tới các controller.
 - Nó sử dụng Dependency Injection (DI) để tạo các dịch vụ và controller cần thiết cho ứng dụng.
 - Các route được phân chia theo phiên bản API (v1) và các nhóm chức năng (users, authen).
 - Mỗi route được bảo vệ bởi các middleware để xác thực và phân quyền người dùng.
 - Các route này cho phép thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên thực thể User và các chức năng xác thực người dùng.
-```
 
 <details>
 <summary>✨ Xem ví dụ về router</summary>
@@ -524,13 +512,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 <!-- Mô tả hoặc ví dụ về Pagination -->
 
-```md
 - Ví dụ về phân trang
 - Phân trang là một kỹ thuật để chia nhỏ dữ liệu thành các trang, giúp quản lý và hiển thị dữ liệu hiệu quả hơn.
 - Trong Go, phân trang có thể được thực hiện bằng cách sử dụng một cấu trúc dữ liệu để quản lý các thông tin như giới hạn (limit), trang (page), sắp xếp (sort), tổng số hàng (total_rows), tổng số trang (total_pages) và kết quả (result).
 - Cấu trúc dữ liệu này cung cấp các phương thức để tính toán offset, giới hạn, trang và sắp xếp.
 - Phân trang cũng hỗ trợ việc trả về kết quả dưới dạng một mảng các đối tượng, cho phép dễ dàng hiển thị kết quả trong các API.
-```
 
 <details>
 <summary>✨ Xem ví dụ về phân trang</summary>
@@ -614,11 +600,10 @@ func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Paginatio
 
 <!-- Mô tả hoặc ví dụ về Mapping -->
 
-```md- Ví dụ về ánh xạ dữ liệu
+- Ví dụ về ánh xạ dữ liệu
 - Ánh xạ dữ liệu là quá trình chuyển đổi giữa các đối tượng trong ứng dụng và các thực thể trong cơ sở dữ liệu.
 - Trong Go, ánh xạ dữ liệu có thể được thực hiện bằng cách sử dụng các thư viện như `copier` để sao chép dữ liệu giữa các cấu trúc khác nhau.
 - Quá trình này giúp dễ dàng chuyển đổi giữa các đối tượng dữ liệu đầu vào (DTO) và các thực thể trong cơ sở dữ liệu.
-```
 
 <details>
 <summary>✨ Xem ví dụ về mapping</summary>
@@ -736,7 +721,6 @@ copier.Copy(&user, &in)
 
 <!-- Mô tả hoặc ví dụ về xác thực & phân quyền -->
 
-```md
 - Ví dụ về xác thực và phân quyền
 - Xác thực và phân quyền là hai khía cạnh quan trọng trong bảo mật ứng dụng.
 - Xác thực là quá trình xác minh danh tính của người dùng, thường thông qua việc sử dụng token JWT (JSON Web Token).
@@ -744,7 +728,6 @@ copier.Copy(&user, &in)
 - Middleware này sẽ xác minh token, lấy thông tin người dùng từ cơ sở dữ liệu và kiểm tra xem người dùng có quyền truy cập vào route hiện tại hay không.
 - Nếu người dùng được xác thực và có quyền truy cập, middleware sẽ lưu thông tin người dùng vào context và tiếp tục xử lý yêu cầu.
 - Đây là một phần quan trọng trong việc bảo mật ứng dụng và đảm bảo rằng chỉ những người dùng có quyền mới có thể truy cập vào các route nhất định.
-```
 
 <details>
 <summary>✨ Xem ví dụ về xác thực & phân quyền</summary>
@@ -879,7 +862,6 @@ api := r.Group("/api")
 
 #### Ghi chép nhật kí Access log (log)
 
-```md
 - Ví dụ về ghi chép nhật kí Access log
 - Ghi chép nhật kí là quá trình ghi lại các thông tin quan trọng về các yêu cầu HTTP và phản hồi của ứng dụng.
 - Trong Go, việc ghi chép nhật kí có thể được thực hiện bằng cách sử dụng middleware để ghi lại các thông tin như ID, IP client, phương thức HTTP, đường dẫn, ngôn ngữ, mã trạng thái, thời gian xử lý, body yêu cầu và body phản hồi.
@@ -889,7 +871,6 @@ api := r.Group("/api")
 - Nó cũng kiểm tra xem yêu cầu có phải là danh sách hay không dựa trên các tham số truy vấn như limit, page, sort, search.
 - Nếu là danh sách, nó sẽ không ghi lại body phản hồi để tránh ghi lại quá nhiều dữ liệu.
 - Việc ghi chép nhật kí giúp theo dõi và phân tích các yêu cầu HTTP, phát hiện lỗi và cải thiện hiệu suất của ứng dụng.
-```
 
 <details>
 <summary>✨ Xem ví dụ về Access log</summary>
@@ -1054,7 +1035,6 @@ func hasListQuery(c *gin.Context) bool {
 
 #### Ghi chép nhật kí App log (logrus)
 
-```md
 - Ví dụ về ghi chép nhật kí App log
 - Ghi chép nhật kí ứng dụng là quá trình ghi lại các thông tin quan trọng về hoạt động của ứng dụng, bao gồm các thông tin như ID, user ID, và mức độ ghi chép.
 - Trong Go, việc ghi chép nhật kí ứng dụng có thể được thực hiện bằng cách sử dụng thư viện logrus để ghi lại các thông tin này vào một file log cụ thể.
@@ -1062,7 +1042,6 @@ func hasListQuery(c *gin.Context) bool {
 - Việc ghi chép nhật kí ứng dụng giúp theo dõi và phân tích các hoạt động của ứng dụng, phát hiện lỗi và cải thiện hiệu suất của ứng dụng.
 - Hàm InitLogger trong package initializers là một ví dụ về cách khởi tạo cấu hình ghi chép nhật kí cho ứng dụng.
 - Hàm này sẽ tạo thư mục chứa file log nếu chưa tồn tại, và cấu hình rotator để xoay vòng file log khi nó đạt đến kích thước tối đa.
-```
 
 <details>
 <summary>✨ Xem ví dụ về App log</summary>
@@ -1196,7 +1175,6 @@ func Log(c *gin.Context, level log.Level, message string) {
 
 <!-- Mô tả hoặc ví dụ về Error handler -->
 
-```md
 - Ví dụ về xử lí lỗi toàn cục
 - Xử lí lỗi toàn cục là quá trình xử lý các lỗi xảy ra trong ứng dụng một cách nhất quán và hiệu quả.
 - Trong Go, việc xử lí lỗi toàn cục có thể được thực hiện bằng cách sử dụng middleware để kiểm tra các lỗi trong context sau khi xử lý yêu cầu.
@@ -1205,7 +1183,6 @@ func Log(c *gin.Context, level log.Level, message string) {
 - Nếu lỗi là một lỗi thường, nó sẽ trả về mã trạng thái 500 (Internal Server Error) cùng với thông điệp lỗi.
 - Middleware này giúp đảm bảo rằng tất cả các lỗi trong ứng dụng đều được xử lý một cách nhất quán và trả về phản hồi phù hợp cho người dùng.
 - Việc xử lí lỗi toàn cục giúp cải thiện trải nghiệm người dùng và giảm thiểu các lỗi không mong muốn trong ứng dụng.
-```
 
 <details>
 <summary>✨ Xem ví dụ về xử lí lỗi toàn cục</summary>
@@ -1261,18 +1238,19 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về Debug -->
 
-```md
+Cài công cụ debug (dlv):
 
+```sh
+go install github.com/go-delve/delve/cmd/dlv@latest
 ```
 
-<details>
-<summary>✨ Xem ví dụ về debug</summary>
+Đặt breakpoint và chạy ứng dụng với debug mode (IDE:VS code):
 
-```go
-
+```sh
+Chuyển tới lớp main.go và nhấn F5
 ```
 
-</details>
+Hoặc tham khảo tại đây [delve](https://github.com/go-delve/delve)
 
 ---
 
@@ -1280,15 +1258,158 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về Validation -->
 
-```md
-
-```
+- Ví dụ về validation
+- Validation là quá trình kiểm tra tính hợp lệ của dữ liệu đầu vào trong ứng dụng.
+- Trong Go, việc validation có thể được thực hiện bằng cách sử dụng thư viện `validator.v10` để xác thực các trường dữ liệu theo các quy tắc đã định nghĩa.
+- Thư viện này cho phép bạn định nghĩa các quy tắc xác thực tùy chỉnh, chẳng hạn như kiểm tra định dạng của email, độ dài của chuỗi, hoặc các quy tắc khác.
+- Bạn có thể định nghĩa các phương thức xác thực tùy chỉnh trong một struct, và sau đó sử dụng chúng trong các thực thể dữ liệu của bạn.
+- Khi dữ liệu được gửi đến từ client, bạn có thể sử dụng các phương thức xác thực này để kiểm tra tính hợp lệ của dữ liệu.
 
 <details>
 <summary>✨ Xem ví dụ về validation</summary>
 
 ```go
+// File: requests/user/userCreate.go
+// Package requests chứa các yêu cầu đầu vào cho ứng dụng, trong đó có UserCreate.
+// Thực thể UserCreate đại diện cho dữ liệu đầu vào khi tạo người dùng mới.
+// Có một phương thức Validate để kiểm tra tính hợp lệ của dữ liệu đầu vào.
+// ✅ Hàm validate custom
+func (u *UserCreate) Validate(c *gin.Context, v *utils.Validator) map[string]string {
+	validate := validator.New()
+	validate.RegisterValidation("password", v.PasswordValidator)
+	validate.RegisterValidation("username", v.UsernameValidator)
+	validate.RegisterValidation("duplicateUsername", v.DuplicateUsernameValidator)
+	validate.RegisterValidation("birthday", v.BirthdayValidator)
+	validate.RegisterValidation("hashed", v.HashedValidator)
+	validate.RegisterValidation("role", v.RoleValidator)
 
+	err := validate.Struct(u)
+	if err == nil {
+		return nil
+	}
+
+	errorsMap := make(map[string]string)
+	for _, fe := range err.(validator.ValidationErrors) {
+		// Lấy localizer cho i18n
+		localizer := utils.LoadVariablesInContext(c)
+
+		field := fe.Field()
+		tag := fe.Tag()
+
+		switch field {
+		case "Username":
+			switch tag {
+			case "required":
+				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.USERNAME_REQUIRE, nil)
+			case "username":
+				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.INVALID_USERNAME, nil)
+			case "duplicateUsername":
+				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.DUPLICATE_USERNAME, nil)
+			}
+		case "Pass":
+			switch tag {
+			case "required":
+				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.PASSWORD_REQUIRE, nil)
+			case "password":
+				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.INVALID_PASSWORD, nil)
+			case "hashed":
+				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.PASSWORD_ENCRYPTION_FAIL, nil)
+			}
+		case "Role":
+			switch tag {
+			case "required":
+				errorsMap["role"] = utils.LoadI18nMessage(localizer, utils.ROLE_REQUIRE, nil)
+			case "role":
+				errorsMap["role"] = utils.LoadI18nMessage(localizer, utils.INVALID_ROLE, nil)
+			}
+		case "Date":
+			errorsMap["birthday"] = utils.LoadI18nMessage(localizer, utils.INVALID_BIRTHDAY, nil)
+		default:
+			errorsMap[field] = utils.LoadI18nMessage(localizer, utils.INVALID_VALUE, nil)
+		}
+	}
+	return errorsMap
+}
+
+// File: utils/validator.go
+// Package utils chứa các hàm tiện ích chung cho ứng dụng, trong đó có Validator.
+// Validator là một struct để chứa các phương thức xác thực dữ liệu đầu vào.
+// Nó sử dụng thư viện validator.v10 để xác thực các trường dữ liệu theo các quy tắc đã định nghĩa
+package utils
+
+import (
+	"go-demo-gin/models"
+	"regexp"
+	"time"
+
+	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
+
+type Validator struct{ db *gorm.DB }
+
+func NewValidator(db *gorm.DB) *Validator {
+	return &Validator{db: db}
+}
+
+func (v *Validator) RoleValidator(fl validator.FieldLevel) bool {
+	role := fl.Field().String()
+	switch models.Role(role) {
+	case models.RoleAdmin, models.RoleStaff, models.RoleCustomer:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v *Validator) HashedValidator(fl validator.FieldLevel) bool {
+	password := fl.Field().String()
+	_, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return err == nil
+}
+
+func (v *Validator) PasswordValidator(fl validator.FieldLevel) bool {
+	password := fl.Field().String()
+	// Regex: chỉ cho phép chữ thường, số, dấu chấm, gạch dưới; 3–24 ký tự
+	re := regexp.MustCompile(`^[a-z0-9_.]{8,36}$`)
+	return re.MatchString(password)
+}
+
+func (v *Validator) UsernameValidator(fl validator.FieldLevel) bool {
+	username := fl.Field().String()
+	// Regex: chỉ cho phép chữ thường, số, dấu chấm, gạch dưới; 3–24 ký tự
+	re := regexp.MustCompile(`^[a-z0-9_.]{3,24}$`)
+	return re.MatchString(username)
+}
+
+func (v *Validator) DuplicateUsernameValidator(fl validator.FieldLevel) bool {
+	username := fl.Field().String()
+	var count int64
+	if err := v.db.Model(&models.User{}).
+		Where("username = ?", username).
+		Count(&count).Error; err != nil {
+		// thận trọng: khi lỗi DB, coi như không hợp lệ (hoặc tuỳ policy)
+		return false
+	}
+	return count == 0
+}
+
+func (v *Validator) BirthdayValidator(fl validator.FieldLevel) bool {
+	birthdayStr := fl.Field().String()
+	birthday, err := time.Parse("2006-01-02", birthdayStr)
+	if err != nil {
+		return false
+	}
+
+	now := time.Now()
+	age := now.Year() - birthday.Year()
+	if now.Month() < birthday.Month() || (now.Month() == birthday.Month() && now.Day() < birthday.Day()) {
+		age--
+	}
+
+	return age >= 5 && age <= 100 // hoặc < 100 nếu bạn không cho tròn 100
+}
 ```
 
 </details>
@@ -1299,15 +1420,45 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về Swagger UI -->
 
-```md
-
-```
+- Ví dụ về Swagger UI
+- Swagger UI là một công cụ để tạo tài liệu API tự động từ mã nguồn Go.
+- Nó cho phép bạn mô tả các endpoint, phương thức HTTP, tham số, và các phản hồi của API một cách rõ ràng và dễ hiểu.
+- Trong Go, bạn có thể sử dụng thư viện `swag` để tạo tài liệu Swagger cho ứng dụng của mình.
+- Xem thêm tại [swaggo/swag](https://github.com/swaggo/swag)
 
 <details>
-<summary>✨ Xem ví dụ về swagger ui</summary>
+<summary>✨ Xem ví dụ về swagger ui 2.0 (swag)</summary>
 
 ```go
+// File: main.go
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your Bearer token
+// @description Example: Bearer 1234567890abcdef
+
+// Swagger info
+docs.SwaggerInfo.Title = "Swagger Example API"
+docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+docs.SwaggerInfo.Version = "1.0"
+docs.SwaggerInfo.Schemes = []string{"http", "https"}
+
+// File: controllers/userController.go
+
+// UsersCreate creates a new user
+//
+// @Summary      Create user
+// @Description  Create a new user
+// @Tags         👨🏻‍💼Users
+// @Security	 BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      userRequest.UserCreate  true  "User to create"
+// @Success      201      {object}  userResponse.UserDetail
+// @Failure      400      {object}  errorResponse.HTTPError
+// @Failure      500      {string}  httputil.HTTPError
+// @Router       /api/v1/users [post]
 ```
 
 </details>
@@ -1317,10 +1468,6 @@ func ErrorHandler() gin.HandlerFunc {
 ### 14. gRPC 🔀
 
 <!-- Mô tả hoặc ví dụ về gRPC -->
-
-```md
-
-```
 
 <details>
 <summary>✨ Xem ví dụ về gRPC</summary>
@@ -1337,10 +1484,6 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về Testing -->
 
-```md
-
-```
-
 <details>
 <summary>✨ Xem ví dụ về testing</summary>
 
@@ -1355,10 +1498,6 @@ func ErrorHandler() gin.HandlerFunc {
 ### 16. Cache 💾
 
 <!-- Mô tả hoặc ví dụ về Cache -->
-
-```md
-
-```
 
 <details>
 <summary>✨ Xem ví dụ về cache</summary>
@@ -1375,10 +1514,6 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về Vault -->
 
-```md
-
-```
-
 <details>
 <summary>✨ Xem ví dụ về vault</summary>
 
@@ -1394,15 +1529,143 @@ func ErrorHandler() gin.HandlerFunc {
 
 <!-- Mô tả hoặc ví dụ về I18n -->
 
-```md
-
-```
+- Ví dụ về I18n
+- I18n (Internationalization) là quá trình chuẩn bị ứng dụng để hỗ trợ nhiều ngôn ngữ và định dạng khác nhau.
+- Trong Go, việc I18n có thể được thực hiện bằng cách sử dụng thư viện `go-i18n` để quản lý các tệp ngôn ngữ.
+- Thư viện này cho phép bạn định nghĩa các tệp ngôn ngữ trong định dạng TOML, và sau đó tải chúng vào một bundle i18n.
+- Bạn có thể sử dụng các tệp ngôn ngữ này để dịch các thông điệp trong ứng dụng của bạn sang các ngôn ngữ khác nhau.
 
 <details>
 <summary>✨ Xem ví dụ về i18n</summary>
 
 ```go
+// File: initializers/i18n.go
+// Package initializers chứa các hàm khởi tạo cho ứng dụng, trong đó có LoadI18n.
+// LoadI18n là một hàm để tải các tệp ngôn ngữ từ hệ thống tập tin nhúng (embed FS) và đăng ký chúng với i18n.
+// Hàm này sử dụng thư viện go-i18n để quản lý các tệp ngôn ngữ.
+// Nó sẽ tìm tất cả các tệp .toml trong thư mục locales và tải chúng vào một i18n.Bundle.
+// Mỗi tệp ngôn ngữ sẽ được phân tích cú pháp và đăng ký với bundle.
+// Nếu có lỗi xảy ra trong quá trình đọc hoặc phân tích tệp, hàm sẽ ghi lại lỗi và trả về lỗi đó.
+package initializers
 
+import (
+	"embed"
+	"io/fs"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/pelletier/go-toml/v2"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/text/language"
+)
+
+// LocaleFS is the embedded filesystem containing locale files
+// It contains all the .toml files in the locales directory
+//
+//go:embed locales/*.toml
+var LocaleFS embed.FS
+
+var Bundle *i18n.Bundle
+
+func LoadI18n() error {
+	Bundle = i18n.NewBundle(language.English)
+	Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+
+	// Tìm tất cả file locale từ embed FS
+	files, err := fs.Glob(LocaleFS, "locales/*.toml")
+	if err != nil {
+		logrus.WithField("source", "system").WithError(err).Error("Failed to glob locale files")
+		return err
+	}
+	if len(files) == 0 {
+		logrus.WithField("source", "system").Warn("No locale files found in embed FS")
+	}
+
+	for _, f := range files {
+		data, err := LocaleFS.ReadFile(f)
+		if err != nil {
+			logrus.WithField("source", "system").WithError(err).
+				Errorf("Failed to read language bundle: %s", f)
+			return err
+		}
+		if _, err := Bundle.ParseMessageFileBytes(data, f); err != nil {
+			logrus.WithField("source", "system").WithError(err).
+				Errorf("Failed to parse language bundle: %s", f)
+			return err
+		}
+		logrus.WithField("source", "system").
+			Infof("Loaded language bundle %s successfully", f)
+	}
+	return nil
+}
+
+// File: middlewares/i18nMiddleware.go
+// Package middlewares chứa các middleware cho ứng dụng, trong đó có I18nMiddleware.
+// I18nMiddleware là một middleware để xử lý đa ngôn ngữ (i18n) trong ứng dụng.
+// Nó sẽ lấy ngôn ngữ từ query string hoặc header Accept-Language và tạo một localizer từ bundle i18n đã được khởi tạo.
+// Localizer này sẽ được gắn vào context của Gin để có thể sử dụng trong các controller hoặc middleware khác.
+package middlewares
+
+import (
+	"go-demo-gin/initializers"
+
+	"github.com/gin-gonic/gin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+)
+
+func I18nMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		lang := c.Query("lang")
+		accept := c.GetHeader("Accept-Language")
+
+		localizer := i18n.NewLocalizer(initializers.Bundle, lang, accept)
+
+		// Gắn vào context
+		c.Set("localizer", localizer)
+
+		c.Next()
+	}
+}
+
+// File: utils/constant.go
+// Package utils chứa các hằng số và thông điệp lỗi chung cho ứng dụng.
+// Nó định nghĩa các thông điệp lỗi thường gặp và các hằng số để sử dụng trong toàn bộ ứng dụng.
+// Các thông điệp này được sử dụng để trả về lỗi cho người dùng khi có lỗi xảy ra trong quá trình xử lý yêu cầu.
+package utils
+
+import "github.com/nicksnyder/go-i18n/v2/i18n"
+
+var INTERNAL_ERROR = &i18n.Message{
+	ID:    "INTERNAL_ERROR",
+	Other: "Internal server error",
+}
+
+var INVALID_VALUE = &i18n.Message{
+	ID:    "INVALID_VALUE",
+	Other: "Invalid value",
+}
+
+var INVALID_BIRTHDAY = &i18n.Message{
+	ID:    "INVALID_BIRTHDAY",
+	Other: "Birthday must be in the format YYYY-MM-DD and the age must be between 5 and 100 years old",
+}
+...more
+
+// File: utils/util.go
+// Package utils chứa các hàm tiện ích chung cho ứng dụng, trong đó có LoadI18nMessage.
+// Hàm LoadI18nMessage là một hàm tiện ích để tải thông điệp i18n từ localizer.
+// Nó nhận vào một localizer, một message và dữ liệu tùy chỉnh (template data).
+// Hàm này sẽ sử dụng localizer để lấy thông điệp đã được dịch và định dạng với dữ liệu tùy chỉnh.
+func LoadI18nMessage(localizer *i18n.Localizer, message *i18n.Message, data map[string]any) string {
+	msg, err := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: message,
+		TemplateData:   data,
+		PluralCount:    -1,
+	})
+	if err != nil {
+		return message.Other
+	}
+	return msg
+}
 ```
 
 </details>
@@ -1412,10 +1675,6 @@ func ErrorHandler() gin.HandlerFunc {
 ### 19. Cloud service ⛅
 
 <!-- Mô tả hoặc ví dụ về Cloud service -->
-
-```md
-
-```
 
 <details>
 <summary>✨ Xem ví dụ về các cloud service</summary>
@@ -1431,10 +1690,6 @@ func ErrorHandler() gin.HandlerFunc {
 ### 20. Deploy & CICD 🚀
 
 <!-- Mô tả hoặc ví dụ về Deploy & CICD -->
-
-```md
-
-```
 
 <details>
 <summary>✨ Xem ví dụ về deploy & CICD</summary>

@@ -9,6 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your Bearer token
+// @description Example: Bearer 1234567890abcdef
 func main() {
 	// 1. Env
 	initializers.LoadEnvVariables()
