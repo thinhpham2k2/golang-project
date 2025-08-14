@@ -22,7 +22,17 @@ require github.com/pelletier/go-toml/v2 v2.2.2
 
 require github.com/sirupsen/logrus v1.9.3
 
-require gopkg.in/natefinch/lumberjack.v2 v2.2.1
+require (
+	github.com/stretchr/testify v1.10.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	gorm.io/driver/sqlite v1.6.0
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

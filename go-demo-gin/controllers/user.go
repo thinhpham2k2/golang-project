@@ -1,11 +1,11 @@
 package controllers
 
 import (
+	"context"
 	"go-demo-gin/pkg"
 	userRequest "go-demo-gin/requests/user"
 	errorResponse "go-demo-gin/responses/error"
 	userResponse "go-demo-gin/responses/user"
-	"go-demo-gin/services"
 	"go-demo-gin/utils"
 
 	"github.com/gin-gonic/gin"
@@ -18,12 +18,20 @@ var (
 	_ errorResponse.HTTPError
 )
 
-type UserController struct {
-	v   *utils.Validator
-	svc *services.UserService
+type UserService interface {
+	CreateUser(ctx context.Context, in *userRequest.UserCreate) (*userResponse.UserDetail, int, string)
+	GetUserList(ctx context.Context, pag *pkg.Pagination, search string) (*pkg.Pagination, int, string)
+	GetUserById(ctx context.Context, id string) (*userResponse.UserDetail, int, string)
+	UpdateUser(ctx context.Context, in *userRequest.UserUpdate, id string) (*userResponse.UserDetail, int, string)
+	DeleteUser(ctx context.Context, id string) (int, string)
 }
 
-func NewUserController(v *utils.Validator, svc *services.UserService) *UserController {
+type UserController struct {
+	v   *utils.Validator
+	svc UserService
+}
+
+func NewUserController(v *utils.Validator, svc UserService) *UserController {
 	return &UserController{v: v, svc: svc}
 }
 
@@ -42,31 +50,32 @@ func NewUserController(v *utils.Validator, svc *services.UserService) *UserContr
 // @Router       /api/v1/users [post]
 func (h *UserController) UsersCreate(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the create user controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the create user controller", nil)
 
 	// Get data off request body
 	var create userRequest.UserCreate
 	if err := c.ShouldBindJSON(&create); err != nil {
 		utils.HandleBindError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Request binding failed: "+err.Error())
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Request binding failed: "+err.Error(), nil)
 		return
 	}
 
 	// Validation
-	if err := create.Validate(c, h.v); err != nil {
+	if err := create.Validate(ctx, h.v); err != nil {
 		utils.HandleValidationError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Validation failed")
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Validation failed", nil)
 		return
 	}
 
 	// Create user
-	detail, status, err := h.svc.CreateUser(c, &create)
+	detail, status, err := h.svc.CreateUser(ctx, &create)
 	if detail == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Create user failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Create user failed: "+err, nil)
 		return
 	}
 
@@ -91,7 +100,8 @@ func (h *UserController) UsersCreate(c *gin.Context) {
 // @Router       /api/v1/users [get]
 func (h *UserController) UsersIndex(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the get list of users controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the get list of users controller", nil)
 
 	// Get parameters in query string
 	search := c.Query("search")
@@ -101,16 +111,16 @@ func (h *UserController) UsersIndex(c *gin.Context) {
 	if err := c.ShouldBindQuery(&pag); err != nil {
 		utils.HandleBindError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Request binding failed: "+err.Error())
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Request binding failed: "+err.Error(), nil)
 		return
 	}
 
 	// Get user list
-	result, status, err := h.svc.GetUserList(c, &pag, search)
+	result, status, err := h.svc.GetUserList(ctx, &pag, search)
 	if result == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Get list of users failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Get list of users failed: "+err, nil)
 		return
 	}
 
@@ -132,17 +142,18 @@ func (h *UserController) UsersIndex(c *gin.Context) {
 // @Router       /api/v1/users/{id} [get]
 func (h *UserController) UsersShow(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the get user by id controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the get user by id controller", nil)
 
 	// Get id from url
 	id := c.Param("id")
 
 	// Gte user detail
-	detail, status, err := h.svc.GetUserById(c, id)
+	detail, status, err := h.svc.GetUserById(ctx, id)
 	if detail == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Get user by id failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Get user by id failed: "+err, nil)
 		return
 	}
 
@@ -166,7 +177,8 @@ func (h *UserController) UsersShow(c *gin.Context) {
 // @Router       /api/v1/users/{id} [put]
 func (h *UserController) UsersUpdate(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the update user controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the update user controller", nil)
 
 	// Get id from url
 	id := c.Param("id")
@@ -176,24 +188,24 @@ func (h *UserController) UsersUpdate(c *gin.Context) {
 	if err := c.ShouldBindJSON(&update); err != nil {
 		utils.HandleBindError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Request binding failed: "+err.Error())
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Request binding failed: "+err.Error(), nil)
 		return
 	}
 
 	// Validation
-	if err := update.Validate(c, h.v); err != nil {
+	if err := update.Validate(ctx, h.v); err != nil {
 		utils.HandleValidationError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Validation failed")
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Validation failed", nil)
 		return
 	}
 
 	// Update user
-	detail, status, err := h.svc.UpdateUser(c, &update, id)
+	detail, status, err := h.svc.UpdateUser(ctx, &update, id)
 	if detail == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Update user failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Update user failed: "+err, nil)
 		return
 	}
 
@@ -215,17 +227,18 @@ func (h *UserController) UsersUpdate(c *gin.Context) {
 // @Router       /api/v1/users/{id} [delete]
 func (h *UserController) UsersDelete(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the delete user controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the delete user controller", nil)
 
 	// Get id from url
 	id := c.Param("id")
 
 	// Delete user
-	status, err := h.svc.DeleteUser(c, id)
+	status, err := h.svc.DeleteUser(ctx, id)
 	if err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Delete user failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Delete user failed: "+err, nil)
 		return
 	}
 

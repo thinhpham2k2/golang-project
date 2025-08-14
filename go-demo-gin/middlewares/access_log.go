@@ -3,6 +3,7 @@ package middlewares
 import (
 	"bytes"
 	"encoding/json"
+	"go-demo-gin/utils"
 	"io"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func AccessLogger() gin.HandlerFunc {
@@ -58,7 +60,12 @@ func AccessLogger() gin.HandlerFunc {
 		c.Writer = writer
 
 		// Gắn id logging vào context
-		c.Set("id", id)
+		entry := logrus.WithFields(logrus.Fields{
+			"id":     id,
+			"source": "service",
+		})
+		ctx := utils.WithLogger(c.Request.Context(), entry)
+		c.Request = c.Request.WithContext(ctx)
 
 		// Tiếp tục xử lý
 		c.Next()

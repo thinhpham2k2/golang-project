@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"context"
 	authenRequest "go-demo-gin/requests/authen"
 	errorResponse "go-demo-gin/responses/error"
-	"go-demo-gin/services"
 	"go-demo-gin/utils"
 
 	"github.com/gin-gonic/gin"
@@ -19,10 +19,14 @@ type TokenResponse struct {
 }
 
 type AuthController struct {
-	svc *services.AuthService
+	svc AuthService
 }
 
-func NewAuthController(svc *services.AuthService) *AuthController {
+type AuthService interface {
+	Authenticate(ctx context.Context, in *authenRequest.LoginForm) (*string, int, string)
+}
+
+func NewAuthController(svc AuthService) *AuthController {
 	return &AuthController{svc: svc}
 }
 
@@ -40,28 +44,29 @@ func NewAuthController(svc *services.AuthService) *AuthController {
 // @Router       /api/v1/authen/login [post]
 func (h *AuthController) Login(c *gin.Context) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the login controller")
+	ctx := c.Request.Context()
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the login controller", nil)
 
 	// Get the username/password off req body
 	var authen authenRequest.LoginForm
 	if err := c.ShouldBind(&authen); err != nil {
 		utils.HandleBindError(c, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Request binding failed: "+err.Error())
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Request binding failed: "+err.Error(), nil)
 		return
 	}
 
 	// Check user infor & generate jwt token
-	token, status, err := h.svc.Authticate(c, &authen)
+	token, status, err := h.svc.Authenticate(ctx, &authen)
 	if token == nil || err != "" {
 		utils.HandleServiceError(c, status, err)
 		// Logging
-		utils.Log(c, logrus.ErrorLevel, "Authtication failed: "+err)
+		utils.LogCtx(ctx, logrus.ErrorLevel, "Authtication failed: "+err, nil)
 		return
 	}
 
 	// Logging
-	utils.Log(c, logrus.ErrorLevel, "Authtication successful for user: "+authen.Username)
+	utils.LogCtx(ctx, logrus.InfoLevel, "Authtication successful for user: "+authen.Username, nil)
 	// Send it back
 	c.JSON(status, TokenResponse{
 		Token: token,

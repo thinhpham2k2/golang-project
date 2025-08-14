@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"go-demo-gin/initializers"
+	"go-demo-gin/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -15,7 +16,8 @@ func I18n() gin.HandlerFunc {
 		localizer := i18n.NewLocalizer(initializers.Bundle, lang, accept)
 
 		// Gắn vào context
-		c.Set("localizer", localizer)
+		ctx := utils.WithLocalizer(c.Request.Context(), localizer)
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}

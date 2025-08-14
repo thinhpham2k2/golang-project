@@ -1,10 +1,10 @@
 package user
 
 import (
+	"context"
 	"go-demo-gin/utils"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,7 +28,7 @@ func (u *UserCreate) Birthday() *time.Time {
 }
 
 // ✅ Hàm validate custom
-func (u *UserCreate) Validate(c *gin.Context, v *utils.Validator) map[string]string {
+func (u *UserCreate) Validate(ctx context.Context, v *utils.Validator) map[string]string {
 	validate := validator.New()
 	validate.RegisterValidation("password", v.PasswordValidator)
 	validate.RegisterValidation("username", v.UsernameValidator)
@@ -45,7 +45,7 @@ func (u *UserCreate) Validate(c *gin.Context, v *utils.Validator) map[string]str
 	errorsMap := make(map[string]string)
 	for _, fe := range err.(validator.ValidationErrors) {
 		// Lấy localizer cho i18n
-		localizer := utils.LoadVariablesInContext(c)
+		localizer := utils.LocalizerFrom(ctx)
 
 		field := fe.Field()
 		tag := fe.Tag()

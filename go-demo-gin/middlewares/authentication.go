@@ -18,7 +18,7 @@ func Authentication(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFu
 	return func(allowedRoles ...models.Role) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			// Lấy localizer cho i18n
-			localizer := utils.LoadVariablesInContext(c)
+			localizer := utils.LocalizerFrom(c.Request.Context())
 
 			// 1. Lấy header Authorization
 			authHeader := c.GetHeader("Authorization")
@@ -58,7 +58,9 @@ func Authentication(db *gorm.DB) func(allowedRoles ...models.Role) gin.HandlerFu
 					return
 				}
 
-				c.Set("user", user) // Lưu thông tin user vào context
+				// Lưu thông tin user vào context
+				ctx := utils.WithInformation(c.Request.Context(), &user)
+				c.Request = c.Request.WithContext(ctx)
 
 				if slices.Contains(allowedRoles, user.Role) {
 					c.Next()

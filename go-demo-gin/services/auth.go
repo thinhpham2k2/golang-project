@@ -1,15 +1,14 @@
 package services
 
 import (
+	"context"
 	"errors"
-	"go-demo-gin/repo"
 	authenRequest "go-demo-gin/requests/authen"
 	"go-demo-gin/utils"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -25,32 +24,33 @@ type AuthConfig struct {
 type AuthService struct {
 	db       *gorm.DB
 	cfg      AuthConfig
-	userRepo repo.UserRepo
+	userRepo UserRepository
 }
 
-func NewAuthService(db *gorm.DB, cfg AuthConfig) *AuthService {
+func NewAuthService(db *gorm.DB, cfg AuthConfig, ur UserRepository) *AuthService {
 	return &AuthService{
 		db:       db,
 		cfg:      cfg,
-		userRepo: repo.NewGormUserRepo(db),
+		userRepo: ur,
 	}
 }
 
-func (s *AuthService) Authticate(c *gin.Context, in *authenRequest.LoginForm) (*string, int, string) {
+func (s *AuthService) Authenticate(ctx context.Context, in *authenRequest.LoginForm) (*string, int, string) {
 	// Logging
-	utils.Log(c, logrus.InfoLevel, "Entering the login service")
+	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the login service", nil)
 
 	// Lấy localizer cho i18n
-	localizer := utils.LoadVariablesInContext(c)
+	localizer := utils.LocalizerFrom(ctx)
 
 	// Look up requested user
 	// lấy user qua repo (context-aware)
-	user, err := s.userRepo.FindByUsername(c.Request.Context(), nil, in.Username)
+	ctxTx := utils.WithTx(ctx, nil)
+	user, err := s.userRepo.FindByUsername(ctxTx, in.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, http.StatusUnauthorized, utils.LoadI18nMessage(localizer, utils.INVALID_USERNAME_PASSWORD, nil)
 		}
-		utils.Log(c, logrus.InfoLevel, "DB error on login")
+		utils.LogCtx(ctx, logrus.InfoLevel, "DB error on login", nil)
 		return nil, http.StatusInternalServerError, utils.LoadI18nMessage(localizer, utils.INTERNAL_ERROR, nil)
 	}
 

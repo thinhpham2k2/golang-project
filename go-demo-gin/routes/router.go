@@ -4,6 +4,7 @@ import (
 	"go-demo-gin/controllers"
 	"go-demo-gin/middlewares"
 	"go-demo-gin/models"
+	"go-demo-gin/repo"
 	"go-demo-gin/services"
 	"go-demo-gin/utils"
 	"os"
@@ -40,7 +41,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 
 	// Create services and controllers
 	// User service and controller
-	userSvc := services.NewUserService(db)
+	ur := repo.NewGormUserRepo(db)
+	userSvc := services.NewUserService(db, ur)
 	uc := controllers.NewUserController(v, userSvc)
 
 	// Authen service and controller
@@ -50,7 +52,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		Issuer:    "go-demo-gin",
 		AccessTTL: time.Hour * 24 * 30,
 	}
-	authenSvc := services.NewAuthService(db, cfg)
+	authenSvc := services.NewAuthService(db, cfg, ur)
 	ac := controllers.NewAuthController(authenSvc)
 
 	api := r.Group("/api")
