@@ -43,7 +43,7 @@ func (s *UserService) CreateUser(ctx context.Context, in *userRequest.UserCreate
 
 	// Mapper
 	var user models.User
-	copier.Copy(&user, &in)
+	copier.Copy(&user, in)
 
 	// Transaction boundary
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -69,8 +69,7 @@ func (s *UserService) GetUserList(ctx context.Context, pag *pkg.Pagination, sear
 	// Logging
 	utils.LogCtx(ctx, logrus.InfoLevel, "Entering the get list of users service", nil)
 	// Query
-	ctxTx := utils.WithTx(ctx, nil)
-	users, total, err := s.userRepo.List(ctxTx, pag, search)
+	users, total, err := s.userRepo.List(ctx, pag, search)
 	if err != nil {
 		return nil, http.StatusBadRequest, err.Error()
 	}
@@ -98,8 +97,7 @@ func (s *UserService) GetUserById(ctx context.Context, idStr string) (*userRespo
 		return nil, http.StatusBadRequest, utils.LoadI18nMessage(localizer, utils.INVALID_VALUE, nil)
 	}
 
-	ctxTx := utils.WithTx(ctx, nil)
-	u, err := s.userRepo.FindByID(ctxTx, uint(id))
+	u, err := s.userRepo.FindByID(ctx, uint(id))
 	if err != nil {
 		return nil, http.StatusNotFound, utils.LoadI18nMessage(localizer, utils.NOT_FOUND, nil)
 	}
