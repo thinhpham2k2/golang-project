@@ -36,7 +36,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	RequireRoles := middlewares.Authentication(db)
 
 	// Dependency Injection (DI) - constructor injection
-	// Create a validator
+	// Create a validator (tạo 1 lần, tái dùng)
 	v := utils.NewValidator(db)
 
 	// Create services and controllers

@@ -12,19 +12,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setupRouterWithAccessLogger(t *testing.T) (*gin.Engine, string) {
+func setupRouterWithAccessLogger(t *testing.T) (r *gin.Engine, logPath string) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
 	// Chạy trong thư mục tạm để log/access.log không đụng file thật
 	tmp := t.TempDir()
-	oldCwd, _ := os.Getwd()
+	oldCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
 	if err := os.Chdir(tmp); err != nil {
 		t.Fatalf("chdir: %v", err)
 	}
+
 	t.Cleanup(func() { _ = os.Chdir(oldCwd) })
 
-	r := gin.New()
+	// Gán vào biến return đã khai báo (không dùng :=) -> không thể dính SA4006
+	r = gin.New()
 	r.Use(AccessLogger())
 
 	// Route không thuộc /api/v1 (để test skip)
@@ -34,7 +39,11 @@ func setupRouterWithAccessLogger(t *testing.T) (*gin.Engine, string) {
 
 	// POST /api/v1/echo: trả nguyên body
 	r.POST("/api/v1/echo", func(c *gin.Context) {
-		b, _ := io.ReadAll(c.Request.Body)
+		b, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.Data(http.StatusOK, "application/json", b)
 	})
 
@@ -43,7 +52,8 @@ func setupRouterWithAccessLogger(t *testing.T) (*gin.Engine, string) {
 		c.JSON(http.StatusOK, gin.H{"items": []int{1, 2}})
 	})
 
-	return r, filepath.Join(tmp, "log", "access.log")
+	logPath = filepath.Join(tmp, "log", "access.log")
+	return
 }
 
 func readAll(t *testing.T, p string) string {

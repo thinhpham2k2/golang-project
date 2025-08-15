@@ -200,7 +200,7 @@ type User struct {
 <summary>✨ Xem ví dụ khởi tạo kết nối Database</summary>
 
 ```go
-// File: initializers/db.go
+// File: initializers/database.go
 // Package initializers chứa các hàm khởi tạo cho ứng dụng, bao gồm kết nối cơ sở dữ liệu.
 // Hàm ConnectToDB thiết lập kết nối tới cơ sở dữ liệu sử dụng chuỗi kết nối được cung cấp trong biến môi trường DB_URL.
 // Nếu kết nối thành công, nó sẽ tự động thực hiện các thao tác cần thiết như tự động tạo bảng dựa trên các thực thể đã định nghĩa.
@@ -331,50 +331,43 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepo interface {
-	Create(ctx context.Context, tx *gorm.DB, u *models.User) error
-	FindByID(ctx context.Context, tx *gorm.DB, id uint) (*models.User, error)
-	Update(ctx context.Context, tx *gorm.DB, u *models.User) error
-	Delete(ctx context.Context, tx *gorm.DB, id uint) error
-	List(ctx context.Context, tx *gorm.DB, pag *pkg.Pagination, search string) ([]models.User, int64, error)
-	FindByUsername(ctx context.Context, tx *gorm.DB, username string) (*models.User, error)
-}
-
 type GormUserRepo struct{ db *gorm.DB }
 
 func NewGormUserRepo(db *gorm.DB) *GormUserRepo { return &GormUserRepo{db: db} }
 
-func (r *GormUserRepo) use(tx *gorm.DB) *gorm.DB {
-	if tx != nil {
+// Lấy DB/Tx từ context nếu có, ngược lại dùng db gốc
+func (r *GormUserRepo) dbFrom(ctx context.Context) *gorm.DB {
+	if tx, ok := utils.TxFrom(ctx); ok && tx != nil {
 		return tx
 	}
 	return r.db
 }
 
-func (r *GormUserRepo) Create(ctx context.Context, tx *gorm.DB, u *models.User) error {
-	return r.use(tx).WithContext(ctx).Create(u).Error
+func (r *GormUserRepo) Create(ctx context.Context, u *models.User) error {
+	return r.dbFrom(ctx).WithContext(ctx).Create(u).Error
 }
 
-func (r *GormUserRepo) FindByID(ctx context.Context, tx *gorm.DB, id uint) (*models.User, error) {
+func (r *GormUserRepo) FindByID(ctx context.Context, id uint) (*models.User, error) {
 	var u models.User
-	if err := r.use(tx).WithContext(ctx).First(&u, id).Error; err != nil {
+	if err := r.dbFrom(ctx).WithContext(ctx).First(&u, id).Error; err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
-func (r *GormUserRepo) Update(ctx context.Context, tx *gorm.DB, u *models.User) error {
-	return r.use(tx).WithContext(ctx).Updates(u).Error
+func (r *GormUserRepo) Update(ctx context.Context, u *models.User) error {
+	return r.dbFrom(ctx).WithContext(ctx).Updates(u).Error
 }
 
-func (r *GormUserRepo) Delete(ctx context.Context, tx *gorm.DB, id uint) error {
-	return r.use(tx).WithContext(ctx).Delete(&models.User{}, id).Error
+func (r *GormUserRepo) Delete(ctx context.Context, id uint) error {
+	return r.dbFrom(ctx).WithContext(ctx).Delete(&models.User{}, id).Error
 }
 
-func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Pagination, search string) ([]models.User, int64, error) {
-	q := r.use(tx).WithContext(ctx).Model(&models.User{})
+func (r *GormUserRepo) List(ctx context.Context, pag *pkg.Pagination, search string) ([]models.User, int64, error) {
+	q := r.dbFrom(ctx).WithContext(ctx).Model(&models.User{})
 	if search != "" {
-		q = q.Where("name ILIKE ? OR username ILIKE ?", "%"+search+"%", "%"+search+"%") // Postgres: ILIKE
+		// Lưu ý: ILIKE là của Postgres; nếu test bằng SQLite thì đổi sang LOWER(...) LIKE ...
+		q = q.Where("name ILIKE ? OR username ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
@@ -387,9 +380,9 @@ func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Paginatio
 	return users, total, nil
 }
 
-func (r *GormUserRepo) FindByUsername(ctx context.Context, tx *gorm.DB, username string) (*models.User, error) {
+func (r *GormUserRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 	var u models.User
-	if err := r.use(tx).WithContext(ctx).
+	if err := r.dbFrom(ctx).WithContext(ctx).
 		Where("username = ?", username).
 		First(&u).Error; err != nil {
 		return nil, err
@@ -435,6 +428,7 @@ import (
 	"go-demo-gin/controllers"
 	"go-demo-gin/middlewares"
 	"go-demo-gin/models"
+	"go-demo-gin/repo"
 	"go-demo-gin/services"
 	"go-demo-gin/utils"
 	"os"
@@ -466,12 +460,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 	RequireRoles := middlewares.Authentication(db)
 
 	// Dependency Injection (DI) - constructor injection
-	// Create a validator
+	// Create a validator (tạo 1 lần, tái dùng)
 	v := utils.NewValidator(db)
 
 	// Create services and controllers
 	// User service and controller
-	userSvc := services.NewUserService(db)
+	ur := repo.NewGormUserRepo(db)
+	userSvc := services.NewUserService(db, ur)
 	uc := controllers.NewUserController(v, userSvc)
 
 	// Authen service and controller
@@ -481,7 +476,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		Issuer:    "go-demo-gin",
 		AccessTTL: time.Hour * 24 * 30,
 	}
-	authenSvc := services.NewAuthService(db, cfg)
+	authenSvc := services.NewAuthService(db, cfg, ur)
 	ac := controllers.NewAuthController(authenSvc)
 
 	api := r.Group("/api")
@@ -576,10 +571,11 @@ func (p *Pagination) GetSort() string {
 // Nó sử dụng phương thức Scopes của GORM để áp dụng phân trang và sắp xếp cho truy vấn.
 // Phương thức này cũng hỗ trợ tìm kiếm người dùng theo tên hoặc tên đăng nhập thông qua tham số search.
 // Nếu có lỗi xảy ra trong quá trình truy vấn, nó sẽ trả về lỗi tương ứng.
-func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Pagination, search string) ([]models.User, int64, error) {
-	q := r.use(tx).WithContext(ctx).Model(&models.User{})
+func (r *GormUserRepo) List(ctx context.Context, pag *pkg.Pagination, search string) ([]models.User, int64, error) {
+	q := r.dbFrom(ctx).WithContext(ctx).Model(&models.User{})
 	if search != "" {
-		q = q.Where("name ILIKE ? OR username ILIKE ?", "%"+search+"%", "%"+search+"%") // Postgres: ILIKE
+		// Lưu ý: ILIKE là của Postgres; nếu test bằng SQLite thì đổi sang LOWER(...) LIKE ...
+		q = q.Where("name ILIKE ? OR username ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
@@ -621,11 +617,8 @@ func (r *GormUserRepo) List(ctx context.Context, tx *gorm.DB, pag *pkg.Paginatio
 package user
 
 import (
-	"go-demo-gin/utils"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -658,11 +651,8 @@ func (u *UserCreate) Birthday() *time.Time {
 package user
 
 import (
-	"go-demo-gin/utils"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -690,6 +680,14 @@ func (u *UserUpdate) Birthday() *time.Time {
 // File: models/user.go
 // Package models chứa các thực thể của ứng dụng, trong đó có User.
 // Thực thể đích trong mapping object
+package models
+
+import (
+	"database/sql"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Role string
 
@@ -711,7 +709,7 @@ type User struct {
 // Mapper
 // File: services/user.go
 var user models.User
-copier.Copy(&user, &in)
+copier.Copy(&user, in)
 ```
 
 </details>
@@ -904,22 +902,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func AccessLogger() gin.HandlerFunc {
 	// Đường dẫn lưu trữ nhật kí
-	logFilePath := "log/access.log"
+	logFilePath := getEnv("ACCESS_LOG_FILE", "log/access.log")
 	// Tạo thư mục nếu chưa có
 	if err := os.MkdirAll(getDir(logFilePath), os.ModePerm); err != nil {
 		log.Fatalf("Không thể tạo thư mục log: %v", err)
 	}
 
-	// Mở file log
-	f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatalf("Không thể mở file log: %v", err)
+	rotator := &lumberjack.Logger{
+		Filename:   logFilePath,
+		MaxSize:    50, // MB
+		MaxBackups: 7,
+		MaxAge:     30, // days
+		Compress:   true,
 	}
-	logger := log.New(f, "", log.LstdFlags)
+
+	// Ghi ra console + file có rotation
+	mw := io.MultiWriter(os.Stdout, rotator)
+	logger := log.New(mw, "", log.LstdFlags)
 
 	return func(c *gin.Context) {
 		if !strings.Contains(strings.ToLower(c.Request.RequestURI), "/api/v1") {
@@ -1000,6 +1004,13 @@ func AccessLogger() gin.HandlerFunc {
 --------------------------------------------------------------------------
 `, id, clientIP, method, path, lang, statusCode, duration, contentTypeReq, formattedReq, contentTypeResp, formattedResp)
 	}
+}
+
+func getEnv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
 }
 
 // bodyWriter để ghi lại response body
@@ -1143,49 +1154,39 @@ func getEnv(k, def string) string {
 	return def
 }
 
-// File: utils/util.go
+// File: utils/ctx_logger.go
 // Package utils chứa các hàm tiện ích chung cho ứng dụng, trong đó có Log.
 // Hàm Log là một hàm tiện ích để ghi chép nhật kí với các thông tin như request ID, user ID và mức độ ghi chép.
 // Hàm này sử dụng thư viện logrus để ghi chép nhật kí với các mức độ khác nhau như Debug, Info, Warn, Error, Fatal, Trace.
 // Nó lấy request ID từ context của Gin, và nếu không có thì gán là "unknown".
 // Nó cũng lấy thông tin người dùng từ context, và nếu không có thì gán user mặc định (có thể là một struct rỗng hoặc giá trị mặc định của bạn).
-func Log(c *gin.Context, level log.Level, message string) {
-	// Lấy request id cho logging
-	id, exists := c.Get("id")
-	if !exists {
-		id = "unknown"
-	}
+package utils
 
-	// Lấy thông tin user cho logging
-	val, exists := c.Get("user")  // exists: key có tồn tại không
-	user, ok := val.(models.User) // ok: ép kiểu có thành công không
-	if !exists || !ok {
-		// Gán user mặc định (nếu models.User là struct)
-		user = models.User{} // hoặc giá trị mặc định của bạn
-	}
+import (
+	"context"
 
-	entry := log.WithFields(log.Fields{
-		"id":      id,
-		"user_id": user.ID,
-		"source":  "service",
-	})
+	"github.com/sirupsen/logrus"
+)
 
-	switch level {
-	case log.DebugLevel:
-		entry.Debug(message)
-	case log.InfoLevel:
-		entry.Info(message)
-	case log.WarnLevel:
-		entry.Warn(message)
-	case log.ErrorLevel:
-		entry.Error(message)
-	case log.FatalLevel:
-		entry.Fatal(message)
-	case log.TraceLevel:
-		entry.Trace(message)
-	default:
-		entry.Print(message)
+type loggerKey struct{}
+
+func WithLogger(ctx context.Context, l *logrus.Entry) context.Context {
+	return context.WithValue(ctx, loggerKey{}, l)
+}
+
+func LoggerFrom(ctx context.Context) *logrus.Entry {
+	if v := ctx.Value(loggerKey{}); v != nil {
+		if l, ok := v.(*logrus.Entry); ok && l != nil {
+			return l
+		}
 	}
+	// fallback: dùng logger mặc định
+	return logrus.NewEntry(logrus.StandardLogger())
+}
+
+// LogCtx: log theo context; nếu muốn thêm field thì truyền qua fields.
+func LogCtx(ctx context.Context, level logrus.Level, message string, fields logrus.Fields) {
+	LoggerFrom(ctx).WithFields(fields).Log(level, message)
 }
 ```
 
@@ -1281,85 +1282,25 @@ Hoặc tham khảo tại đây [delve](https://github.com/go-delve/delve)
 <!-- Mô tả hoặc ví dụ về Validation -->
 
 - Ví dụ về validation
-- Validation là quá trình kiểm tra tính hợp lệ của dữ liệu đầu vào trong ứng dụng.
-- Trong Go, việc validation có thể được thực hiện bằng cách sử dụng thư viện `validator.v10` để xác thực các trường dữ liệu theo các quy tắc đã định nghĩa.
-- Thư viện này cho phép bạn định nghĩa các quy tắc xác thực tùy chỉnh, chẳng hạn như kiểm tra định dạng của email, độ dài của chuỗi, hoặc các quy tắc khác.
-- Bạn có thể định nghĩa các phương thức xác thực tùy chỉnh trong một struct, và sau đó sử dụng chúng trong các thực thể dữ liệu của bạn.
-- Khi dữ liệu được gửi đến từ client, bạn có thể sử dụng các phương thức xác thực này để kiểm tra tính hợp lệ của dữ liệu.
+- Validation là quá trình xác thực dữ liệu đầu vào để đảm bảo rằng nó đáp ứng các yêu cầu và định dạng nhất định.
+- Trong Go, việc validation có thể được thực hiện bằng cách sử dụng thư viện `validator.v10`.
+- Thư viện này cho phép bạn định nghĩa các quy tắc xác thực cho các trường dữ liệu trong struct, chẳng hạn như kiểm tra định dạng email, độ dài chuỗi, và các quy tắc tùy chỉnh khác.
+- Bạn có thể định nghĩa các quy tắc xác thực tùy chỉnh bằng cách sử dụng các hàm và gán chúng cho các trường trong struct.
 
 <details>
 <summary>✨ Xem ví dụ về validation</summary>
 
 ```go
-// File: requests/user/create.go
-// Package requests chứa các yêu cầu đầu vào cho ứng dụng, trong đó có UserCreate.
-// Thực thể UserCreate đại diện cho dữ liệu đầu vào khi tạo người dùng mới.
-// Có một phương thức Validate để kiểm tra tính hợp lệ của dữ liệu đầu vào.
-// ✅ Hàm validate custom
-func (u *UserCreate) Validate(c *gin.Context, v *utils.Validator) map[string]string {
-	validate := validator.New()
-	validate.RegisterValidation("password", v.PasswordValidator)
-	validate.RegisterValidation("username", v.UsernameValidator)
-	validate.RegisterValidation("duplicateUsername", v.DuplicateUsernameValidator)
-	validate.RegisterValidation("birthday", v.BirthdayValidator)
-	validate.RegisterValidation("hashed", v.HashedValidator)
-	validate.RegisterValidation("role", v.RoleValidator)
-
-	err := validate.Struct(u)
-	if err == nil {
-		return nil
-	}
-
-	errorsMap := make(map[string]string)
-	for _, fe := range err.(validator.ValidationErrors) {
-		// Lấy localizer cho i18n
-		localizer := utils.LoadVariablesInContext(c)
-
-		field := fe.Field()
-		tag := fe.Tag()
-
-		switch field {
-		case "Username":
-			switch tag {
-			case "required":
-				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.USERNAME_REQUIRE, nil)
-			case "username":
-				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.INVALID_USERNAME, nil)
-			case "duplicateUsername":
-				errorsMap["username"] = utils.LoadI18nMessage(localizer, utils.DUPLICATE_USERNAME, nil)
-			}
-		case "Pass":
-			switch tag {
-			case "required":
-				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.PASSWORD_REQUIRE, nil)
-			case "password":
-				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.INVALID_PASSWORD, nil)
-			case "hashed":
-				errorsMap["password"] = utils.LoadI18nMessage(localizer, utils.PASSWORD_ENCRYPTION_FAIL, nil)
-			}
-		case "Role":
-			switch tag {
-			case "required":
-				errorsMap["role"] = utils.LoadI18nMessage(localizer, utils.ROLE_REQUIRE, nil)
-			case "role":
-				errorsMap["role"] = utils.LoadI18nMessage(localizer, utils.INVALID_ROLE, nil)
-			}
-		case "Date":
-			errorsMap["birthday"] = utils.LoadI18nMessage(localizer, utils.INVALID_BIRTHDAY, nil)
-		default:
-			errorsMap[field] = utils.LoadI18nMessage(localizer, utils.INVALID_VALUE, nil)
-		}
-	}
-	return errorsMap
-}
-
 // File: utils/validator.go
 // Package utils chứa các hàm tiện ích chung cho ứng dụng, trong đó có Validator.
-// Validator là một struct để chứa các phương thức xác thực dữ liệu đầu vào.
-// Nó sử dụng thư viện validator.v10 để xác thực các trường dữ liệu theo các quy tắc đã định nghĩa
+// Validator là một struct để xác thực dữ liệu đầu vào trong ứng dụng.
+// Nó sử dụng thư viện validator.v10 để xác thực các trường dữ liệu theo các quy tắc đã định nghĩa.
+// Struct này bao gồm một trường db để truy cập cơ sở dữ liệu và một trường v để lưu trữ các quy tắc xác thực.
+// ✅ Hàm validate custom
 package utils
 
 import (
+	"context"
 	"go-demo-gin/models"
 	"regexp"
 	"time"
@@ -1369,13 +1310,96 @@ import (
 	"gorm.io/gorm"
 )
 
-type Validator struct{ db *gorm.DB }
+type ctxKeyUpdateID struct{}
 
-func NewValidator(db *gorm.DB) *Validator {
-	return &Validator{db: db}
+func WithUpdateID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, ctxKeyUpdateID{}, id)
 }
 
-func (v *Validator) RoleValidator(fl validator.FieldLevel) bool {
+func UpdateIDFrom(ctx context.Context) (uint, bool) {
+	if v := ctx.Value(ctxKeyUpdateID{}); v != nil {
+		if id, ok := v.(uint); ok {
+			return id, true
+		}
+	}
+	return 0, false
+}
+
+type Validator struct {
+	db *gorm.DB
+	v  *validator.Validate
+}
+
+func NewValidator(db *gorm.DB) *Validator {
+	v := validator.New()
+	val := &Validator{db: db, v: v}
+
+	// các rule tĩnh của bạn
+	_ = v.RegisterValidation("role", val.roleValidator)
+	_ = v.RegisterValidation("hashed", val.hashedValidator)
+	_ = v.RegisterValidation("password", val.passwordValidator)
+	_ = v.RegisterValidation("username", val.usernameValidator)
+	_ = v.RegisterValidation("birthday", val.birthdayValidator)
+
+	// ✅ rule trùng username có context (timeout/cancel, dùng chung TX)
+	_ = v.RegisterValidationCtx("duplicateUsername", val.duplicateUsernameCtx)
+
+	return val
+}
+
+func (val *Validator) ValidateStructCtx(ctx context.Context, s any) map[string]string {
+	cctx, cancel := context.WithTimeout(ctx, 700*time.Millisecond)
+	defer cancel()
+
+	if err := val.v.StructCtx(cctx, s); err != nil {
+		if verrs, ok := err.(validator.ValidationErrors); ok {
+			// Lấy localizer cho i18n
+			localizer := LocalizerFrom(ctx)
+			errorsMap := make(map[string]string)
+			for _, fe := range verrs {
+				field := fe.StructField()
+				tag := fe.Tag()
+
+				switch field {
+				case "Username":
+					switch tag {
+					case "required":
+						errorsMap["username"] = LoadI18nMessage(localizer, USERNAME_REQUIRE, nil)
+					case "username":
+						errorsMap["username"] = LoadI18nMessage(localizer, INVALID_USERNAME, nil)
+					case "duplicateUsername":
+						errorsMap["username"] = LoadI18nMessage(localizer, DUPLICATE_USERNAME, nil)
+					}
+				case "Pass":
+					switch tag {
+					case "required":
+						errorsMap["password"] = LoadI18nMessage(localizer, PASSWORD_REQUIRE, nil)
+					case "password":
+						errorsMap["password"] = LoadI18nMessage(localizer, INVALID_PASSWORD, nil)
+					case "hashed":
+						errorsMap["password"] = LoadI18nMessage(localizer, PASSWORD_ENCRYPTION_FAIL, nil)
+					}
+				case "Role":
+					switch tag {
+					case "required":
+						errorsMap["role"] = LoadI18nMessage(localizer, ROLE_REQUIRE, nil)
+					case "role":
+						errorsMap["role"] = LoadI18nMessage(localizer, INVALID_ROLE, nil)
+					}
+				case "Date":
+					errorsMap["birthday"] = LoadI18nMessage(localizer, INVALID_BIRTHDAY, nil)
+				default:
+					errorsMap[field] = LoadI18nMessage(localizer, INVALID_VALUE, nil)
+				}
+			}
+
+			return errorsMap
+		}
+	}
+	return nil
+}
+
+func (v *Validator) roleValidator(fl validator.FieldLevel) bool {
 	role := fl.Field().String()
 	switch models.Role(role) {
 	case models.RoleAdmin, models.RoleStaff, models.RoleCustomer:
@@ -1385,39 +1409,39 @@ func (v *Validator) RoleValidator(fl validator.FieldLevel) bool {
 	}
 }
 
-func (v *Validator) HashedValidator(fl validator.FieldLevel) bool {
+func (v *Validator) hashedValidator(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
 	_, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return err == nil
 }
 
-func (v *Validator) PasswordValidator(fl validator.FieldLevel) bool {
+func (v *Validator) passwordValidator(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
 	// Regex: chỉ cho phép chữ thường, số, dấu chấm, gạch dưới; 3–24 ký tự
 	re := regexp.MustCompile(`^[a-z0-9_.]{8,36}$`)
 	return re.MatchString(password)
 }
 
-func (v *Validator) UsernameValidator(fl validator.FieldLevel) bool {
+func (v *Validator) usernameValidator(fl validator.FieldLevel) bool {
 	username := fl.Field().String()
 	// Regex: chỉ cho phép chữ thường, số, dấu chấm, gạch dưới; 3–24 ký tự
 	re := regexp.MustCompile(`^[a-z0-9_.]{3,24}$`)
 	return re.MatchString(username)
 }
 
-func (v *Validator) DuplicateUsernameValidator(fl validator.FieldLevel) bool {
+func (val *Validator) duplicateUsernameCtx(ctx context.Context, fl validator.FieldLevel) bool {
 	username := fl.Field().String()
-	var count int64
-	if err := v.db.Model(&models.User{}).
-		Where("username = ?", username).
-		Count(&count).Error; err != nil {
-		// thận trọng: khi lỗi DB, coi như không hợp lệ (hoặc tuỳ policy)
-		return false
+
+	q := val.db.WithContext(ctx).Model(&models.User{}).Where("username = ?", username)
+	if currID, ok := UpdateIDFrom(ctx); ok { // 👈 lấy ID đã gắn
+		q = q.Where("id <> ?", currID)
 	}
-	return count == 0
+
+	var count int64
+	return q.Count(&count).Error == nil && count == 0
 }
 
-func (v *Validator) BirthdayValidator(fl validator.FieldLevel) bool {
+func (v *Validator) birthdayValidator(fl validator.FieldLevel) bool {
 	birthdayStr := fl.Field().String()
 	birthday, err := time.Parse("2006-01-02", birthdayStr)
 	if err != nil {

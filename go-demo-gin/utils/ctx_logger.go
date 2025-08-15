@@ -1,4 +1,3 @@
-// utils/ctx_logger.go
 package utils
 
 import (

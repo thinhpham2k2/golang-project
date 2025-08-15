@@ -22,52 +22,6 @@ func TxFrom(ctx context.Context) (*gorm.DB, bool) {
 	return tx, ok
 }
 
-// func Log(c *gin.Context, level log.Level, message string) {
-// 	// Lấy request id cho logging
-// 	id, exists := c.Get("id")
-// 	if !exists {
-// 		id = "unknown"
-// 	}
-
-// 	// Lấy thông tin user cho logging
-// 	val, exists := c.Get("user")  // exists: key có tồn tại không
-// 	user, ok := val.(models.User) // ok: ép kiểu có thành công không
-// 	if !exists || !ok {
-// 		// Gán user mặc định (nếu models.User là struct)
-// 		user = models.User{} // hoặc giá trị mặc định của bạn
-// 	}
-
-// 	entry := log.WithFields(log.Fields{
-// 		"id":      id,
-// 		"user_id": user.ID,
-// 		"source":  "service",
-// 	})
-
-// 	switch level {
-// 	case log.DebugLevel:
-// 		entry.Debug(message)
-// 	case log.InfoLevel:
-// 		entry.Info(message)
-// 	case log.WarnLevel:
-// 		entry.Warn(message)
-// 	case log.ErrorLevel:
-// 		entry.Error(message)
-// 	case log.FatalLevel:
-// 		entry.Fatal(message)
-// 	case log.TraceLevel:
-// 		entry.Trace(message)
-// 	default:
-// 		entry.Print(message)
-// 	}
-// }
-
-// func LoadVariablesInContext(c *gin.Context) *i18n.Localizer {
-// 	// Lấy localizer cho i18n
-// 	localizer := c.MustGet("localizer").(*i18n.Localizer)
-
-// 	return localizer
-// }
-
 func LoadI18nMessage(localizer *i18n.Localizer, message *i18n.Message, data map[string]any) string {
 	msg, err := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: message,

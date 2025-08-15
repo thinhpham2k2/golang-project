@@ -7,6 +7,7 @@ import (
 	errorResponse "go-demo-gin/responses/error"
 	userResponse "go-demo-gin/responses/user"
 	"go-demo-gin/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -63,7 +64,7 @@ func (h *UserController) UsersCreate(c *gin.Context) {
 	}
 
 	// Validation
-	if err := create.Validate(ctx, h.v); err != nil {
+	if err := h.v.ValidateStructCtx(ctx, create); err != nil {
 		utils.HandleValidationError(c, err)
 		// Logging
 		utils.LogCtx(ctx, logrus.ErrorLevel, "Validation failed", nil)
@@ -71,15 +72,15 @@ func (h *UserController) UsersCreate(c *gin.Context) {
 	}
 
 	// Create user
-	detail, status, err := h.svc.CreateUser(ctx, &create)
-	if detail == nil || err != "" {
-		utils.HandleServiceError(c, status, err)
-		// Logging
-		utils.LogCtx(ctx, logrus.ErrorLevel, "Create user failed: "+err, nil)
-		return
-	}
+	// detail, status, err := h.svc.CreateUser(ctx, &create)
+	// if detail == nil || err != "" {
+	// 	utils.HandleServiceError(c, status, err)
+	// 	// Logging
+	// 	utils.LogCtx(ctx, logrus.ErrorLevel, "Create user failed: "+err, nil)
+	// 	return
+	// }
 
-	c.JSON(status, detail)
+	c.JSON(http.StatusBadRequest, nil)
 }
 
 // UsersIndex lists all existing users
@@ -182,6 +183,7 @@ func (h *UserController) UsersUpdate(c *gin.Context) {
 
 	// Get id from url
 	id := c.Param("id")
+	ctxu := utils.WithUpdateID(c.Request.Context(), id)
 
 	// Get data off request body
 	var update userRequest.UserUpdate
@@ -193,7 +195,7 @@ func (h *UserController) UsersUpdate(c *gin.Context) {
 	}
 
 	// Validation
-	if err := update.Validate(ctx, h.v); err != nil {
+	if err := h.v.ValidateStructCtx(ctxu, update); err != nil {
 		utils.HandleValidationError(c, err)
 		// Logging
 		utils.LogCtx(ctx, logrus.ErrorLevel, "Validation failed", nil)

@@ -13,22 +13,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func AccessLogger() gin.HandlerFunc {
 	// Đường dẫn lưu trữ nhật kí
-	logFilePath := "log/access.log"
+	logFilePath := getEnv("ACCESS_LOG_FILE", "log/access.log")
 	// Tạo thư mục nếu chưa có
 	if err := os.MkdirAll(getDir(logFilePath), os.ModePerm); err != nil {
 		log.Fatalf("Không thể tạo thư mục log: %v", err)
 	}
 
-	// Mở file log
-	f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatalf("Không thể mở file log: %v", err)
+	rotator := &lumberjack.Logger{
+		Filename:   logFilePath,
+		MaxSize:    50, // MB
+		MaxBackups: 7,
+		MaxAge:     30, // days
+		Compress:   true,
 	}
-	logger := log.New(f, "", log.LstdFlags)
+
+	// Ghi ra console + file có rotation
+	mw := io.MultiWriter(os.Stdout, rotator)
+	logger := log.New(mw, "", log.LstdFlags)
 
 	return func(c *gin.Context) {
 		if !strings.Contains(strings.ToLower(c.Request.RequestURI), "/api/v1") {
@@ -109,6 +115,13 @@ func AccessLogger() gin.HandlerFunc {
 --------------------------------------------------------------------------
 `, id, clientIP, method, path, lang, statusCode, duration, contentTypeReq, formattedReq, contentTypeResp, formattedResp)
 	}
+}
+
+func getEnv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
 }
 
 // bodyWriter để ghi lại response body
